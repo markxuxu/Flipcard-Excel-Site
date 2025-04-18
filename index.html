@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel 翻牌記單字</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #f0f2f5;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .card {
+      width: 150px;
+      height: 200px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    .inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+    }
+    .card.flipped .inner {
+      transform: rotateY(180deg);
+    }
+    .front, .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      font-size: 20px;
+      padding: 10px;
+    }
+    .back {
+      transform: rotateY(180deg);
+      background: #ffd;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Excel 翻牌記單字</h1>
+  <div id="card-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    async function loadExcel() {
+      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; // 修改成你的 Excel 位置
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const data = new Uint8Array(arrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+      const container = document.getElementById('card-container');
+      jsonData.forEach(item => {
+        const word = item['英文單字'] || item['word'];
+        const definition = item['中文解釋'] || item['definition'];
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="inner">
+            <div class="front">${word}</div>
+            <div class="back">${definition}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          card.classList.toggle('flipped');
+        });
+        container.appendChild(card);
+      });
+    }
+
+    loadExcel();
+  </script>
+
+</body>
+</html>
