@@ -90,7 +90,7 @@
     let currentIndex = 0;
 
     async function loadExcel() {
-      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; // 修改成你的 Excel 檔案 URL
+      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; 
       try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("檔案載入失敗");
@@ -121,14 +121,12 @@
       const front = document.getElementById('front');
       const back = document.getElementById('back');
 
-      // 確保有資料
       if (data.length === 0) {
         front.textContent = "無資料";
         back.innerHTML = "<p>請檢查 Excel 檔案。</p>";
         return;
       }
 
-      // 更新卡片內容
       const item = data[currentIndex];
       front.textContent = item.word || "無單字";
       back.innerHTML = `
@@ -136,7 +134,6 @@
         <p style="font-size: 14px; color: #666;">中文解釋：${item.definition || "無中文解釋"}</p>
       `;
 
-      // 確保翻轉功能
       card.classList.remove('flipped');
       card.onclick = () => {
         card.classList.toggle('flipped');
@@ -144,28 +141,34 @@
     }
 
     document.getElementById('prev').addEventListener('click', () => {
-      currentIndex = (currentIndex - 1 + data.length) % data.length; // 循環到最後一個
+      currentIndex = (currentIndex - 1 + data.length) % data.length;
       updateCard();
     });
 
     document.getElementById('next').addEventListener('click', () => {
-      currentIndex = (currentIndex + 1) % data.length; // 循環到第一個
+      currentIndex = (currentIndex + 1) % data.length;
       updateCard();
     });
 
     document.getElementById('random').addEventListener('click', () => {
-      currentIndex = Math.floor(Math.random() * data.length); // 隨機索引
+      currentIndex = Math.floor(Math.random() * data.length);
       updateCard();
     });
 
-    document.getElementById('play-audio').addEventListener('click', () => {
+    document.getElementById('play-audio').addEventListener('click', async () => {
       const word = data[currentIndex].word;
-      const audioUrl = `https://api.dictionaryapi.dev/media/pronunciations/en/${word}-us.mp3`; // 修改成可用的音檔 API
-      const audio = new Audio(audioUrl);
-      audio.play().catch(() => alert("音檔播放失敗或無法找到音檔！"));
+      const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_us_1.mp3`;
+      try {
+        const response = await fetch(audioUrl, { method: 'HEAD' });
+        if (!response.ok) throw new Error("音檔不存在");
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } catch (error) {
+        alert("音檔播放失敗或無法找到音檔！");
+      }
     });
 
-    loadExcel(); // 載入 Excel
+    loadExcel();
   </script>
 </body>
 </html>
