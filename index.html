@@ -80,6 +80,8 @@
   <div class="navigation">
     <button id="prev">上一個</button>
     <button id="next">下一個</button>
+    <button id="random">隨機單字</button>
+    <button id="play-audio">播放音標</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -128,7 +130,6 @@
 
       // 更新卡片內容
       const item = data[currentIndex];
-      console.log("更新卡片：", item); // 測試：輸出當前單字資料
       front.textContent = item.word || "無單字";
       back.innerHTML = `
         <p style="font-size: 18px; color: #333;">音標：${item.phonetic || "無音標"}</p>
@@ -150,6 +151,18 @@
     document.getElementById('next').addEventListener('click', () => {
       currentIndex = (currentIndex + 1) % data.length; // 循環到第一個
       updateCard();
+    });
+
+    document.getElementById('random').addEventListener('click', () => {
+      currentIndex = Math.floor(Math.random() * data.length); // 隨機索引
+      updateCard();
+    });
+
+    document.getElementById('play-audio').addEventListener('click', () => {
+      const word = data[currentIndex].word;
+      const audioUrl = `https://api.dictionaryapi.dev/media/pronunciations/en/${word}-us.mp3`; // 修改成可用的音檔 API
+      const audio = new Audio(audioUrl);
+      audio.play().catch(() => alert("音檔播放失敗或無法找到音檔！"));
     });
 
     loadExcel(); // 載入 Excel
