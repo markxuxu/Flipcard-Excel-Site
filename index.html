@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Excel 翻牌記單字</title>
+  <title>單字記憶卡</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,16 +14,11 @@
     h1 {
       margin-bottom: 20px;
     }
-    #card-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
     .card {
       width: 200px;
       height: 250px;
       perspective: 1000px;
+      margin: auto;
       cursor: pointer;
     }
     .inner {
@@ -55,58 +50,98 @@
       transform: rotateY(180deg);
       background: #ffd;
     }
-    .card:hover .inner {
-      transform: rotateY(180deg);
+    .navigation {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #4caf50;
+      color: white;
+    }
+    button:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 <body>
 
-  <h1>Excel 翻牌記單字</h1>
-  <div id="card-container"></div>
+  <h1>單字記憶卡</h1>
+  <div class="card" id="card">
+    <div class="inner">
+      <div class="front" id="front"></div>
+      <div class="back" id="back"></div>
+    </div>
+  </div>
+  <div class="navigation">
+    <button id="prev">上一個</button>
+    <button id="next">下一個</button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
+    const data = []; // 初始化單字資料
+    let currentIndex = 0;
+
     async function loadExcel() {
       const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; // 確保 Excel 文件可公開存取
-
       try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("檔案載入失敗");
-        
-        const arrayBuffer = await response.arrayBuffer();
-        const data = new Uint8Array(arrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
 
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-        const container = document.getElementById('card-container');
+        // 載入資料
         jsonData.forEach(item => {
-          const word = item['英文單字'] || item['word'];
-          const definition = item['中文解釋'] || item['definition'];
-
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <div class="inner">
-              <div class="front">${word}</div>
-              <div class="back">${definition}</div>
-            </div>
-          `;
-          card.addEventListener('click', () => {
-            card.classList.toggle('flipped');
+          data.push({
+            word: item['word'],
+            phonetic: item['phonetic']
           });
-          container.appendChild(card);
         });
+
+        updateCard();
       } catch (error) {
         console.error("載入 Excel 失敗：", error);
-        document.getElementById('card-container').innerHTML = "<p>無法載入 Excel 檔案，請確認網址是否正確。</p>";
+        document.body.innerHTML = "<p>無法載入 Excel 檔案，請確認網址是否正確。</p>";
       }
     }
 
-    loadExcel();
+    function updateCard() {
+      const card = document.getElementById('card');
+      const front = document.getElementById('front');
+      const back = document.getElementById('back');
+
+      // 更新卡片內容
+      const item = data[currentIndex];
+      front.textContent = item.word || "無單字";
+      back.textContent = item.phonetic || "無音標";
+
+      // 添加翻轉效果
+      card.classList.remove('flipped');
+      card.addEventListener('click', () => {
+        card.classList.toggle('flipped');
+      });
+    }
+
+    document.getElementById('prev').addEventListener('click', () => {
+      currentIndex = (currentIndex - 1 + data.length) % data.length;
+      updateCard();
+    });
+
+    document.getElementById('next').addEventListener('click', () => {
+      currentIndex = (currentIndex + 1) % data.length;
+      updateCard();
+    });
+
+    loadExcel(); // 載入 Excel
   </script>
 
 </body>
