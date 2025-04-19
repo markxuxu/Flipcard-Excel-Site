@@ -119,13 +119,23 @@
       const front = document.getElementById('front');
       const back = document.getElementById('back');
 
+      // 確保有資料
+      if (data.length === 0) {
+        front.textContent = "無資料";
+        back.innerHTML = "<p>請檢查 Excel 檔案。</p>";
+        return;
+      }
+
+      // 更新卡片內容
       const item = data[currentIndex];
-      front.textContent = item.word;
+      console.log("更新卡片：", item); // 測試：輸出當前單字資料
+      front.textContent = item.word || "無單字";
       back.innerHTML = `
-        <p style="font-size: 18px; color: #333;">音標：${item.phonetic}</p>
-        <p style="font-size: 14px; color: #666;">中文解釋：${item.definition}</p>
+        <p style="font-size: 18px; color: #333;">音標：${item.phonetic || "無音標"}</p>
+        <p style="font-size: 14px; color: #666;">中文解釋：${item.definition || "無中文解釋"}</p>
       `;
 
+      // 確保翻轉功能
       card.classList.remove('flipped');
       card.onclick = () => {
         card.classList.toggle('flipped');
@@ -133,16 +143,16 @@
     }
 
     document.getElementById('prev').addEventListener('click', () => {
-      currentIndex = (currentIndex - 1 + data.length) % data.length;
+      currentIndex = (currentIndex - 1 + data.length) % data.length; // 循環到最後一個
       updateCard();
     });
 
     document.getElementById('next').addEventListener('click', () => {
-      currentIndex = (currentIndex + 1) % data.length;
+      currentIndex = (currentIndex + 1) % data.length; // 循環到第一個
       updateCard();
     });
 
-    loadExcel();
+    loadExcel(); // 載入 Excel
   </script>
 </body>
 </html>
