@@ -40,6 +40,7 @@
       background: white;
       border-radius: 10px;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -84,11 +85,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-    const data = []; // 初始化單字資料
+    const data = [];
     let currentIndex = 0;
 
     async function loadExcel() {
-      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; // 確保 Excel 文件可公開存取
+      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx';
       try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("檔案載入失敗");
@@ -99,11 +100,11 @@
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-        // 載入資料
         jsonData.forEach(item => {
           data.push({
-            word: item['word'],
-            phonetic: item['phonetic']
+            word: item['word'] || "無單字",
+            phonetic: item['phonetic'] || "無音標",
+            definition: item['definition'] || "無中文解釋"
           });
         });
 
@@ -119,16 +120,17 @@
       const front = document.getElementById('front');
       const back = document.getElementById('back');
 
-      // 更新卡片內容
       const item = data[currentIndex];
-      front.textContent = item.word || "無單字";
-      back.textContent = item.phonetic || "無音標";
+      front.textContent = item.word;
+      back.innerHTML = `
+        <p style="font-size: 18px; color: #333;">${item.phonetic}</p>
+        <p style="font-size: 14px; color: #666;">${item.definition}</p>
+      `;
 
-      // 添加翻轉效果
       card.classList.remove('flipped');
-      card.addEventListener('click', () => {
+      card.onclick = () => {
         card.classList.toggle('flipped');
-      });
+      };
     }
 
     document.getElementById('prev').addEventListener('click', () => {
@@ -141,7 +143,7 @@
       updateCard();
     });
 
-    loadExcel(); // 載入 Excel
+    loadExcel();
   </script>
 
 </body>
