@@ -70,7 +70,6 @@
   </style>
 </head>
 <body>
-
   <h1>單字記憶卡</h1>
   <div class="card" id="card">
     <div class="inner">
@@ -89,7 +88,7 @@
     let currentIndex = 0;
 
     async function loadExcel() {
-      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx';
+      const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; // 修改成你的 Excel 檔案 URL
       try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("檔案載入失敗");
@@ -123,8 +122,8 @@
       const item = data[currentIndex];
       front.textContent = item.word;
       back.innerHTML = `
-        <p style="font-size: 18px; color: #333;">${item.phonetic}</p>
-        <p style="font-size: 14px; color: #666;">${item.definition}</p>
+        <p style="font-size: 18px; color: #333;">音標：${item.phonetic}</p>
+        <p style="font-size: 14px; color: #666;">中文解釋：${item.definition}</p>
       `;
 
       card.classList.remove('flipped');
@@ -145,6 +144,5 @@
 
     loadExcel();
   </script>
-
 </body>
 </html>
