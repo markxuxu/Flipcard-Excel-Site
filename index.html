@@ -67,6 +67,11 @@
     button:hover {
       background-color: #45a049;
     }
+    #audio-status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -83,6 +88,7 @@
     <button id="random">隨機單字</button>
     <button id="play-audio">播放音標</button>
   </div>
+  <div id="audio-status">音檔狀態：<span id="status-text">檢查中...</span></div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -110,6 +116,7 @@
         });
 
         updateCard();
+        checkAudioStatus();
       } catch (error) {
         console.error("載入 Excel 失敗：", error);
         document.body.innerHTML = "<p>無法載入 Excel 檔案，請確認網址是否正確。</p>";
@@ -140,19 +147,39 @@
       };
     }
 
+    async function checkAudioStatus() {
+      const word = data[currentIndex].word;
+      const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_us_1.mp3`;
+
+      const statusText = document.getElementById('status-text');
+      try {
+        const response = await fetch(audioUrl, { method: 'HEAD' });
+        if (response.ok) {
+          statusText.textContent = "音檔可用";
+        } else {
+          statusText.textContent = "音檔不可用，使用 TTS";
+        }
+      } catch {
+        statusText.textContent = "音檔不可用，使用 TTS";
+      }
+    }
+
     document.getElementById('prev').addEventListener('click', () => {
       currentIndex = (currentIndex - 1 + data.length) % data.length;
       updateCard();
+      checkAudioStatus();
     });
 
     document.getElementById('next').addEventListener('click', () => {
       currentIndex = (currentIndex + 1) % data.length;
       updateCard();
+      checkAudioStatus();
     });
 
     document.getElementById('random').addEventListener('click', () => {
       currentIndex = Math.floor(Math.random() * data.length);
       updateCard();
+      checkAudioStatus();
     });
 
     document.getElementById('play-audio').addEventListener('click', async () => {
@@ -164,7 +191,10 @@
         const audio = new Audio(audioUrl);
         audio.play();
       } catch (error) {
-        alert("音檔播放失敗或無法找到音檔！");
+        console.warn("音檔不可用，使用 TTS 功能代替");
+        const speech = new SpeechSynthesisUtterance(word);
+        speech.lang = 'en-US';
+        window.speechSynthesis.speak(speech);
       }
     });
 
