@@ -1,101 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>單字記憶卡</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
   <style>
+    /* 基本設定 */
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #2980b9, #6dd5fa);
       text-align: center;
-      padding: 20px;
-      background: #f0f2f5;
+      padding: 40px;
+      color: white;
     }
+    
     h1 {
+      font-size: 28px;
+      font-weight: 600;
       margin-bottom: 20px;
     }
+    
+    /* 選單設計 */
+    #unit-selector {
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 20px;
+      background: white;
+      color: #333;
+      cursor: pointer;
+    }
+
+    /* 單字卡片 */
     .card {
-      width: 200px;
-      height: 250px;
+      width: 250px;
+      height: 300px;
       perspective: 1000px;
       margin: auto;
       cursor: pointer;
     }
+
     .inner {
       position: relative;
       width: 100%;
       height: 100%;
-      text-align: center;
       transition: transform 0.6s;
       transform-style: preserve-3d;
     }
+
     .card.flipped .inner {
       transform: rotateY(180deg);
     }
+
     .front, .back {
       position: absolute;
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
       background: white;
-      border-radius: 10px;
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      font-size: 20px;
-      padding: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      font-size: 22px;
+      padding: 20px;
+      color: #333;
+      transition: 0.3s ease-in-out;
     }
+
     .back {
       transform: rotateY(180deg);
-      background: #ffd;
+      background: #f7c14f;
     }
-    .navigation {
-      margin-top: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
+
+    /* 按鈕設計 */
+    .navigation button {
+      padding: 12px 18px;
       font-size: 16px;
+      margin: 5px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
-      background-color: #4caf50;
+      transition: 0.3s;
+      background-color: white;
+      color: #2980b9;
+      font-weight: bold;
+    }
+
+    .navigation button:hover {
+      background-color: #f7c14f;
       color: white;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    #audio-status {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #888;
     }
   </style>
 </head>
 <body>
-  <h1>單字記憶卡</h1>
+  <h1>📖 單字記憶卡</h1>
+
+  <!-- 單元選擇 -->
+  <label for="unit-selector">選擇單元：</label>
+  <select id="unit-selector">
+    <option value="unit1">單元 1（多益 300 單字）</option>
+    <option value="unit2">單元 2（其他單字）</option>
+    <option value="unit3">單元 3（未來新增的單字）</option>
+  </select>
+
+  <!-- 單字卡 -->
   <div class="card" id="card">
     <div class="inner">
       <div class="front" id="front"></div>
       <div class="back" id="back"></div>
     </div>
   </div>
+
+  <!-- 控制按鈕 -->
   <div class="navigation">
-    <button id="prev">上一個</button>
-    <button id="next">下一個</button>
-    <button id="random">隨機單字</button>
-    <button id="play-audio">播放音標</button>
+    <button id="prev">◀️ 上一個</button>
+    <button id="next">▶️ 下一個</button>
+    <button id="random">🔀 隨機單字</button>
+    <button id="play-audio">🔊 播放音標</button>
   </div>
-  <div id="audio-status">音檔狀態：<span id="status-text">檢查中...</span></div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-    const data = [];
+    let data = [];
     let currentIndex = 0;
 
-    async function loadExcel() {
+    async function loadExcel(unit) {
       const url = 'https://markxuxu.github.io/Flipcard-Excel-Site/Flipcard-Excel.xlsx'; 
       try {
         const response = await fetch(url);
@@ -103,20 +137,21 @@
 
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
+
+        let sheetName = "Sheet1";
+        if (unit === "unit2") sheetName = "Sheet2";
+        if (unit === "unit3") sheetName = "Sheet3";
+
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-        jsonData.forEach(item => {
-          data.push({
-            word: item['word'] || "無單字",
-            phonetic: item['phonetic'] || "無音標",
-            definition: item['definition'] || "無中文解釋"
-          });
-        });
+        data = jsonData.map(item => ({
+          word: item['word'] || "無單字",
+          phonetic: item['phonetic'] || "無音標",
+          definition: item['definition'] || "無中文解釋"
+        }));
 
         updateCard();
-        checkAudioStatus();
       } catch (error) {
         console.error("載入 Excel 失敗：", error);
         document.body.innerHTML = "<p>無法載入 Excel 檔案，請確認網址是否正確。</p>";
@@ -124,81 +159,55 @@
     }
 
     function updateCard() {
-      const card = document.getElementById('card');
       const front = document.getElementById('front');
       const back = document.getElementById('back');
 
       if (data.length === 0) {
         front.textContent = "無資料";
-        back.innerHTML = "<p>請檢查 Excel 檔案。</p>";
+        back.innerHTML = "<p>請選擇單元。</p>";
         return;
       }
 
       const item = data[currentIndex];
-      front.textContent = item.word || "無單字";
+      front.textContent = item.word;
       back.innerHTML = `
-        <p style="font-size: 18px; color: #333;">音標：${item.phonetic || "無音標"}</p>
-        <p style="font-size: 14px; color: #666;">中文解釋：${item.definition || "無中文解釋"}</p>
+        <p>音標：${item.phonetic}</p>
+        <p>中文解釋：${item.definition}</p>
       `;
-
-      card.classList.remove('flipped');
-      card.onclick = () => {
-        card.classList.toggle('flipped');
-      };
+      document.getElementById('card').classList.remove('flipped');
     }
 
-    async function checkAudioStatus() {
-      const word = data[currentIndex].word;
-      const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_us_1.mp3`;
-
-      const statusText = document.getElementById('status-text');
-      try {
-        const response = await fetch(audioUrl, { method: 'HEAD' });
-        if (response.ok) {
-          statusText.textContent = "音檔可用";
-        } else {
-          statusText.textContent = "音檔不可用，使用 TTS";
-        }
-      } catch {
-        statusText.textContent = "音檔不可用，使用 TTS";
-      }
-    }
+    document.getElementById('unit-selector').addEventListener('change', async (event) => {
+      await loadExcel(event.target.value);
+    });
 
     document.getElementById('prev').addEventListener('click', () => {
       currentIndex = (currentIndex - 1 + data.length) % data.length;
       updateCard();
-      checkAudioStatus();
     });
 
     document.getElementById('next').addEventListener('click', () => {
       currentIndex = (currentIndex + 1) % data.length;
       updateCard();
-      checkAudioStatus();
     });
 
     document.getElementById('random').addEventListener('click', () => {
       currentIndex = Math.floor(Math.random() * data.length);
       updateCard();
-      checkAudioStatus();
     });
 
-    document.getElementById('play-audio').addEventListener('click', async () => {
+    document.getElementById('play-audio').addEventListener('click', () => {
       const word = data[currentIndex].word;
-      const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_us_1.mp3`;
-      try {
-        const response = await fetch(audioUrl, { method: 'HEAD' });
-        if (!response.ok) throw new Error("音檔不存在");
-        const audio = new Audio(audioUrl);
-        audio.play();
-      } catch (error) {
-        console.warn("音檔不可用，使用 TTS 功能代替");
-        const speech = new SpeechSynthesisUtterance(word);
-        speech.lang = 'en-US';
-        window.speechSynthesis.speak(speech);
-      }
+      const speech = new SpeechSynthesisUtterance(word);
+      speech.lang = 'en-US';
+      window.speechSynthesis.speak(speech);
     });
 
-    loadExcel();
+    document.getElementById('card').addEventListener('click', () => {
+      document.getElementById('card').classList.toggle('flipped');
+    });
+
+    updateCard();
   </script>
 </body>
 </html>
