@@ -18,7 +18,7 @@
     h1 {
       font-size: 26px;
       font-weight: 600;
-      margin-bottom: 20px;
+      margin-bottom: 40px; /* 增加標題下方間距 */
     }
     
     /* 選單設計 */
@@ -27,7 +27,7 @@
       padding: 10px;
       border-radius: 8px;
       border: none;
-      margin-bottom: 4px;
+      margin-bottom: 20px; /* 增加間距 */
       background: white;
       color: #333;
       cursor: pointer;
@@ -40,6 +40,9 @@
       perspective: 1000px;
       margin: auto;
       cursor: pointer;
+      margin-top: 20px; /* 確保不被擋住 */
+      position: relative;
+      z-index: 999; /* 確保卡片顯示在最上層 */
     }
 
     .inner {
@@ -78,6 +81,10 @@
     }
 
     /* 按鈕設計 */
+    .navigation {
+      margin-top: 40px; /* 增加與卡片的間距 */
+    }
+
     .navigation button {
       padding: 12px 18px;
       font-size: 16px;
@@ -117,15 +124,6 @@
   </div>
 
   <!-- 控制按鈕 -->
-
-
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
   <div class="navigation">
     <button id="prev">◀️ 上一個</button>
     <button id="next">▶️ 下一個</button>
